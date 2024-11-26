@@ -16,6 +16,6 @@ def db_session():
     Base.metadata.create_all(bind=engine)
     session = TestingSessionLocal()
     yield session
-    time.sleep(30)  # Добавляем задержку в 30 секунд
+    time.sleep(5)  # Добавляем задержку в 30 секунд
     session.close()
     Base.metadata.drop_all(bind=engine)

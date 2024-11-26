@@ -3,9 +3,10 @@ from langchain import PromptTemplate
 
 TOGETHER_API_KEY = "c00408153177483c93bb3a5eb3c8cc1e8de2fac5ddacc09203d6d6bbf54585aa"  # Replace this with your actual API key
 
-
 def search_together(query: str, data: dict, template: str) -> str | None:
+    print("Query: " + query)
     client = Together(api_key=TOGETHER_API_KEY)
+    print("Client")
 
     # Создаем PromptTemplate с использованием LangChain
     prompt_template = PromptTemplate(
