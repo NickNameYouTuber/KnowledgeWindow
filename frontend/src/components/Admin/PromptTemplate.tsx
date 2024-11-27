@@ -85,7 +85,9 @@ const PromptTemplate = () => {
             className="w-full h-32 p-2 border border-gray-200 rounded"
           />
         ) : (
-          <pre className="p-2 bg-gray-100 rounded">{template.content}</pre>
+          <pre className="p-2 bg-gray-100 rounded whitespace-pre-wrap break-words">
+            {template.content}
+          </pre>
         )}
       </div>
     </div>

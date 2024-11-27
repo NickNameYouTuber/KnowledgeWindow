@@ -15,3 +15,29 @@ code {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* В вашем основном CSS файле или в Tailwind CSS */
+.dark {
+  background-color: #1a202c;
+  color: #ffffff;
+}
+
+.dark .bg-white {
+  background-color: #2d3748;
+}
+
+.dark .text-gray-800 {
+  color: #e2e8f0;
+}
+input {
+  @apply dark:bg-gray-800 dark:text-gray-100;
+}
+
+textarea {
+  @apply dark:bg-gray-800 dark:text-gray-100;
+}
+
+select {
+  @apply dark:bg-gray-800 dark:text-gray-100;
+}
+/* Добавьте другие стили для темной темы по мере необходимости */
