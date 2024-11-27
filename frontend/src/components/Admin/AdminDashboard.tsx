@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import axios from 'axios';
-import { Upload, Code2, Palette, Layout, Copy, CheckCheck } from 'lucide-react';
+import { Upload, Code2, Palette, Layout, Copy, CheckCheck, FileText, Edit, Trash2 } from 'lucide-react';
+import {PromptTemplate} from "../../types";
 
 const AdminDashboard = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -28,8 +29,8 @@ const AdminDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://127.0.0.1:5000/upload-${file.name.split('.').pop()}`, 
-        formData, 
+        `http://127.0.0.1:5000/upload-${file.name.split('.').pop()}`,
+        formData,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -59,7 +60,7 @@ const AdminDashboard = () => {
           <Upload className="h-5 w-5 text-blue-500" />
           <h2 className="text-lg font-semibold">Upload Knowledge Base</h2>
         </div>
-        
+
         <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center">
           <input
             type="file"
@@ -76,11 +77,11 @@ const AdminDashboard = () => {
               {file ? file.name : 'Drop files here or click to upload'}
             </span>
           </label>
-          
+
           {file && (
             <div className="mt-4">
               <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
-                <div 
+                <div
                   className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
@@ -95,7 +96,7 @@ const AdminDashboard = () => {
             </div>
           )}
         </div>
-        
+
         {message && (
           <div className={`mt-4 p-3 rounded-lg ${message.includes('Error') ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}>
             {message}
@@ -104,6 +105,8 @@ const AdminDashboard = () => {
       </div>
 
       <EmbedCodeGenerator />
+
+      <PromptTemplates />
     </div>
   );
 };
@@ -203,6 +206,115 @@ const EmbedCodeGenerator = () => {
               className="w-full h-32 px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all font-mono text-sm bg-gray-50"
             />
           </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const PromptTemplates = () => {
+  const [templates, setTemplates] = useState<PromptTemplate[]>([]);
+  const [newTemplate, setNewTemplate] = useState({ name: '', template: '' });
+  const [editingTemplate, setEditingTemplate] = useState<PromptTemplate | null>(null);
+
+  useEffect(() => {
+    fetchTemplates();
+  }, []);
+
+  const fetchTemplates = async () => {
+    const response = await axios.get('http://127.0.0.1:5000/templates');
+    setTemplates(response.data);
+  };
+
+  const handleCreate = async () => {
+    await axios.post('http://127.0.0.1:5000/templates', newTemplate);
+    setNewTemplate({ name: '', template: '' });
+    fetchTemplates();
+  };
+
+  const handleUpdate = async (id: number) => {
+    if (editingTemplate) {
+      await axios.put(`http://127.0.0.1:5000/templates/${id}`, editingTemplate);
+      setEditingTemplate(null);
+      fetchTemplates();
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    await axios.delete(`http://127.0.0.1:5000/templates/${id}`);
+    fetchTemplates();
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div className="flex items-center space-x-2 mb-6">
+        <FileText className="h-5 w-5 text-blue-500" />
+        <h2 className="text-lg font-semibold">Prompt Templates</h2>
+      </div>
+
+      <div className="space-y-6">
+        {/* Create New Template */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <FileText className="h-4 w-4" />
+            <span>Create New Template</span>
+          </label>
+          <input
+            type="text"
+            value={newTemplate.name}
+            onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+            placeholder="Template Name"
+            className="border p-2 w-full mb-2"
+          />
+          <textarea
+            value={newTemplate.template}
+            onChange={(e) => setNewTemplate({ ...newTemplate, template: e.target.value })}
+            placeholder="Template Content"
+            className="border p-2 w-full mb-2"
+          />
+          <button onClick={handleCreate} className="bg-blue-500 text-white p-2">
+            Create
+          </button>
+        </div>
+
+        {/* List of Templates */}
+        <div className="space-y-4">
+          {templates.map((template) => (
+            <div key={template.id} className="border p-2 mb-2">
+              {editingTemplate?.id === template.id ? (
+                <>
+                  <input
+                    type="text"
+                    value={editingTemplate.name}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
+                    className="border p-2 w-full mb-2"
+                  />
+                  <textarea
+                    value={editingTemplate.template}
+                    onChange={(e) => setEditingTemplate({ ...editingTemplate, template: e.target.value })}
+                    className="border p-2 w-full mb-2"
+                  />
+                  <button onClick={() => handleUpdate(template.id)} className="bg-green-500 text-white p-2 mr-2">
+                    Save
+                  </button>
+                  <button onClick={() => setEditingTemplate(null)} className="bg-red-500 text-white p-2">
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="font-bold">{template.name}</div>
+                  <div>{template.template}</div>
+                  <button onClick={() => setEditingTemplate(template)} className="bg-yellow-500 text-white p-2 mr-2">
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button onClick={() => handleDelete(template.id)} className="bg-red-500 text-white p-2">
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </>
+              )}
+            </div>
+          ))}
         </div>
       </div>
     </div>
