@@ -20,7 +20,7 @@ def upload_txt_file(request, db):
     file = request.files['file']
     if file.filename.endswith(".txt"):
         file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)
+        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
         new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
@@ -34,7 +34,7 @@ def upload_csv_file(request, db):
     file = request.files['file']
     if file.filename.endswith(".csv"):
         file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)
+        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
         new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
@@ -48,7 +48,7 @@ def upload_docx_file(request, db):
     file = request.files['file']
     if file.filename.endswith(".docx"):
         file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)
+        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
         new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
@@ -62,7 +62,7 @@ def upload_xlsx_file(request, db):
     file = request.files['file']
     if file.filename.endswith(".xlsx"):
         file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)
+        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
         new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
@@ -76,7 +76,7 @@ def upload_pdf_file(request, db):
     file = request.files['file']
     if file.filename.endswith(".pdf"):
         file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)
+        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
         new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
@@ -90,14 +90,13 @@ def upload_md_file(request, db):
     file = request.files['file']
     if file.filename.endswith(".md"):
         file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)
+        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
         new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
         return jsonify({"message": "File processed and vectorized successfully"})
     else:
         return jsonify({"error": "Invalid file type. Only .md files are allowed."}), 400
-
 
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
