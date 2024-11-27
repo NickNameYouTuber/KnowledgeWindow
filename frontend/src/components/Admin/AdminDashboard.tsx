@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Upload, Code2, Palette, Layout, Copy, CheckCheck, FileText, Edit, Trash2 } from 'lucide-react';
+import {
+  Upload,
+  Code2,
+  Palette,
+  Layout,
+  Copy,
+  CheckCheck,
+  FileText,
+  Edit,
+  Trash2,
+  Paintbrush,
+  CircleDot, Type, Zap
+} from 'lucide-react';
 import { PromptTemplate } from "../../types";
 import axiosWithAuth from '../../axiosWithAuth';
 
@@ -120,15 +132,33 @@ const AdminDashboard = () => {
   );
 };
 
+
 const EmbedCodeGenerator = () => {
   const [format, setFormat] = useState('small');
   const [color, setColor] = useState('#ffffff');
+  const [theme, setTheme] = useState('light');
+  const [borderRadius, setBorderRadius] = useState('8');
+  const [fontSize, setFontSize] = useState('14');
+  const [buttonColor, setButtonColor] = useState('#3B82F6');
+  const [inputStyle, setInputStyle] = useState('modern');
+  const [animationSpeed, setAnimationSpeed] = useState('300');
   const [copied, setCopied] = useState(false);
 
   const generateEmbedCode = () => {
+    const params = new URLSearchParams({
+      format,
+      color: encodeURIComponent(color),
+      theme,
+      borderRadius,
+      fontSize,
+      buttonColor: encodeURIComponent(buttonColor),
+      inputStyle,
+      animationSpeed,
+    }).toString();
+
     return `<iframe
-  src="http://127.0.0.1:5000/embed?format=${format}&color=${encodeURIComponent(color)}"
-  style="width: 100%; height: ${format === 'full' ? '100vh' : '300px'}; border: none;"
+  src="http://127.0.0.1:5000/embed?${params}"
+  style="width: 100%; height: ${format === 'full' ? '100vh' : '400px'}; border: none;"
 ></iframe>`;
   };
 
@@ -142,7 +172,7 @@ const EmbedCodeGenerator = () => {
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
       <div className="flex items-center space-x-2 mb-6">
         <Code2 className="h-5 w-5 text-blue-500" />
-        <h2 className="text-lg font-semibold">Embed Code Generator</h2>
+        <h2 className="text-lg font-semibold">Enhanced Embed Code Generator</h2>
       </div>
 
       <div className="space-y-6">
@@ -162,7 +192,23 @@ const EmbedCodeGenerator = () => {
           </select>
         </div>
 
-        {/* Color Selection */}
+        {/* Theme Selection */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <Paintbrush className="h-4 w-4" />
+            <span>Theme</span>
+          </label>
+          <select
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+          >
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+
+        {/* Background Color */}
         <div className="space-y-2">
           <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
             <Palette className="h-4 w-4" />
@@ -180,6 +226,120 @@ const EmbedCodeGenerator = () => {
               value={color}
               onChange={(e) => setColor(e.target.value)}
               className="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Button Color */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <CircleDot className="h-4 w-4" />
+            <span>Button Color</span>
+          </label>
+          <div className="flex space-x-2">
+            <input
+              type="color"
+              value={buttonColor}
+              onChange={(e) => setButtonColor(e.target.value)}
+              className="h-10 w-20 rounded border border-gray-200 p-1"
+            />
+            <input
+              type="text"
+              value={buttonColor}
+              onChange={(e) => setButtonColor(e.target.value)}
+              className="flex-1 px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+            />
+          </div>
+        </div>
+
+        {/* Border Radius */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <Layout className="h-4 w-4" />
+            <span>Border Radius (px)</span>
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="20"
+            value={borderRadius}
+            onChange={(e) => setBorderRadius(e.target.value)}
+            className="w-full"
+          />
+          <div className="text-sm text-gray-500 text-right">{borderRadius}px</div>
+        </div>
+
+        {/* Font Size */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <Type className="h-4 w-4" />
+            <span>Font Size (px)</span>
+          </label>
+          <input
+            type="range"
+            min="12"
+            max="20"
+            value={fontSize}
+            onChange={(e) => setFontSize(e.target.value)}
+            className="w-full"
+          />
+          <div className="text-sm text-gray-500 text-right">{fontSize}px</div>
+        </div>
+
+        {/* Input Style */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <Layout className="h-4 w-4" />
+            <span>Input Style</span>
+          </label>
+          <select
+            value={inputStyle}
+            onChange={(e) => setInputStyle(e.target.value)}
+className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+          >
+            <option value="modern">Modern</option>
+            <option value="minimal">Minimal</option>
+            <option value="classic">Classic</option>
+          </select>
+        </div>
+
+        {/* Animation Speed */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <Zap className="h-4 w-4" />
+            <span>Animation Speed (ms)</span>
+          </label>
+          <select
+            value={animationSpeed}
+            onChange={(e) => setAnimationSpeed(e.target.value)}
+            className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+          >
+            <option value="150">Fast (150ms)</option>
+            <option value="300">Normal (300ms)</option>
+            <option value="500">Slow (500ms)</option>
+          </select>
+        </div>
+
+        {/* Preview */}
+        <div className="space-y-2">
+          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
+            <Layout className="h-4 w-4" />
+            <span>Preview</span>
+          </label>
+          <div className="border border-gray-200 rounded-lg overflow-hidden">
+            <iframe
+              src={`http://127.0.0.1:5000/embed?${new URLSearchParams({
+                format,
+                color: encodeURIComponent(color),
+                theme,
+                borderRadius,
+                fontSize,
+                buttonColor: encodeURIComponent(buttonColor),
+                inputStyle,
+                animationSpeed,
+              }).toString()}`}
+              style={{ width: '100%', height: '300px', border: 'none' }}
+              title="Embed Preview"
             />
           </div>
         </div>
@@ -222,58 +382,6 @@ const EmbedCodeGenerator = () => {
 };
 
 const PromptTemplates = () => {
-  const [templates, setTemplates] = useState<PromptTemplate[]>([]);
-  const [newTemplate, setNewTemplate] = useState({ name: '', template: '' });
-  const [editingTemplate, setEditingTemplate] = useState<PromptTemplate | null>(null);
-
-  useEffect(() => {
-    fetchTemplates();
-  }, []);
-
-  const fetchTemplates = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('Token not found');
-      return;
-    }
-    const response = await axiosWithAuth(token).get('http://127.0.0.1:5000/templates');
-    setTemplates(response.data);
-  };
-
-  const handleCreate = async () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('Token not found');
-      return;
-    }
-    await axiosWithAuth(token).post('http://127.0.0.1:5000/templates', newTemplate);
-    setNewTemplate({ name: '', template: '' });
-    fetchTemplates();
-  };
-
-  const handleUpdate = async (id: number) => {
-    if (editingTemplate) {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        console.error('Token not found');
-        return;
-      }
-      await axiosWithAuth(token).put(`http://127.0.0.1:5000/templates/${id}`, editingTemplate);
-      setEditingTemplate(null);
-      fetchTemplates();
-    }
-  };
-
-  const handleDelete = async (id: number) => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('Token not found');
-      return;
-    }
-    await axiosWithAuth(token).delete(`http://127.0.0.1:5000/templates/${id}`);
-    fetchTemplates();
-  };
-
   return (
     <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
       <div className="flex items-center space-x-2 mb-6">
@@ -281,70 +389,8 @@ const PromptTemplates = () => {
         <h2 className="text-lg font-semibold">Prompt Templates</h2>
       </div>
 
-      <div className="space-y-6">
-        {/* Create New Template */}
-        <div className="space-y-2">
-          <label className="flex items-center space-x-2 text-sm font-medium text-gray-700">
-            <FileText className="h-4 w-4" />
-            <span>Create New Template</span>
-          </label>
-          <input
-            type="text"
-            value={newTemplate.name}
-            onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-            placeholder="Template Name"
-            className="border p-2 w-full mb-2"
-          />
-          <textarea
-            value={newTemplate.template}
-            onChange={(e) => setNewTemplate({ ...newTemplate, template: e.target.value })}
-            placeholder="Template Content"
-            className="border p-2 w-full mb-2"
-          />
-          <button onClick={handleCreate} className="bg-blue-500 text-white p-2">
-            Create
-          </button>
-        </div>
-
-        {/* List of Templates */}
-        <div className="space-y-4">
-          {templates.map((template) => (
-            <div key={template.id} className="border p-2 mb-2">
-              {editingTemplate?.id === template.id ? (
-                <>
-                  <input
-                    type="text"
-                    value={editingTemplate.name}
-                    onChange={(e) => setEditingTemplate({ ...editingTemplate, name: e.target.value })}
-                    className="border p-2 w-full mb-2"
-                  />
-                  <textarea
-                    value={editingTemplate.template}
-                    onChange={(e) => setEditingTemplate({ ...editingTemplate, template: e.target.value })}
-                    className="border p-2 w-full mb-2"
-                  />
-                  <button onClick={() => handleUpdate(template.id)} className="bg-green-500 text-white p-2 mr-2">
-                    Save
-                  </button>
-                  <button onClick={() => setEditingTemplate(null)} className="bg-red-500 text-white p-2">
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div className="font-bold">{template.name}</div>
-                  <div>{template.template}</div>
-                  <button onClick={() => setEditingTemplate(template)} className="bg-yellow-500 text-white p-2 mr-2">
-                    <Edit className="h-4 w-4" />
-                  </button>
-                  <button onClick={() => handleDelete(template.id)} className="bg-red-500 text-white p-2">
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
+      <div className="flex items-center justify-center h-32 text-gray-500">
+        В разработке
       </div>
     </div>
   );
