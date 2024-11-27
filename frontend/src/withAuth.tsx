@@ -11,14 +11,18 @@ const withAuth = <P extends object>(
   allowedRoles?: string[]
 ) => {
   const WithAuth: React.FC<P & WithAuthProps> = (props) => {
-    const { isAuthenticated, userRole } = useAuth();
+    const { isAuthenticated, userRole, isLoading } = useAuth();
     const location = useLocation();
 
-    if (!isAuthenticated) {
+    if (isLoading) {
+      return <div>Loading...</div>; // Or your custom loading component
+    }
+
+    if (!isAuthenticated || !userRole) {
       return <Navigate to="/login" state={{ from: location }} replace />;
     }
-    console.log("allowedRoles", allowedRoles, "role", userRole)
-    if (allowedRoles && !allowedRoles.includes(userRole!)) {
+
+    if (allowedRoles && !allowedRoles.includes(userRole)) {
       return <Navigate to="/unauthorized" replace />;
     }
 
