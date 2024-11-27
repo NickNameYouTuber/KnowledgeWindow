@@ -4,7 +4,7 @@ from app.services.etl_service import process_txt_file, process_csv_file, process
 from app.repositories.knowledge_base_repository import get_all_knowledge_bases, create_knowledge_base
 import tempfile
 
-from app.services.together_service import search_together
+from app.services.llm_service import search_together
 
 def upload_txt_file(request, db):
     print("Request: ", request)
