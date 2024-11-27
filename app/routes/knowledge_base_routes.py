@@ -1,4 +1,8 @@
+import os
+
+import PyPDF2
 import numpy as np
+import openpyxl
 from flask import request, jsonify
 from keras.src.losses import cosine_similarity
 from werkzeug.utils import secure_filename
@@ -61,9 +65,21 @@ def upload_xlsx_file(request, db):
         return jsonify({"error": "No file part"}), 400
     file = request.files['file']
     if file.filename.endswith(".xlsx"):
-        file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
-        new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
+        # Сохраняем файл во временное место
+        temp_file_path = secure_filename(file.filename)
+        file.save(temp_file_path)
+
+        # Открываем файл с помощью openpyxl
+        wb = openpyxl.load_workbook(temp_file_path)
+        sheet = wb.active
+        content = "\n".join([f"{cell.value}" for row in sheet.iter_rows() for cell in row])
+
+        # Удаляем временный файл
+        os.remove(temp_file_path)
+
+        # Преобразуем контент в вектор
+        vector = text_to_vector(content)
+        new_entry = VectorizedKnowledgeBase(title=file.filename, content=content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
         return jsonify({"message": "File processed and vectorized successfully"})
@@ -75,9 +91,20 @@ def upload_pdf_file(request, db):
         return jsonify({"error": "No file part"}), 400
     file = request.files['file']
     if file.filename.endswith(".pdf"):
-        file_content = file.read().decode('utf-8')
-        vector = text_to_vector(file_content)  # Преобразуем контент в вектор
-        new_entry = VectorizedKnowledgeBase(title=file.filename, content=file_content, vector=vector)
+        # Сохраняем файл во временное место
+        temp_file_path = secure_filename(file.filename)
+        file.save(temp_file_path)
+
+        # Извлекаем текст из PDF-файла
+        pdf_reader = PyPDF2.PdfReader(temp_file_path)
+        content = "\n".join([pdf_reader.pages[i].extract_text() for i in range(len(pdf_reader.pages))])
+
+        # Удаляем временный файл
+        os.remove(temp_file_path)
+
+        # Преобразуем контент в вектор
+        vector = text_to_vector(content)
+        new_entry = VectorizedKnowledgeBase(title=file.filename, content=content, vector=vector)
         db.session.add(new_entry)
         db.session.commit()
         return jsonify({"message": "File processed and vectorized successfully"})
