@@ -69,20 +69,23 @@ const AdminDashboard = () => {
             id="file-upload"
           />
           <label
-            htmlFor="file-upload"
-            className="cursor-pointer flex flex-col items-center"
+              htmlFor="file-upload"
+              className="cursor-pointer flex flex-col items-center"
           >
-            <Upload className="h-12 w-12 text-gray-400 mb-4" />
-            <span className="text-sm text-gray-600">
+            <Upload className="h-12 w-12 text-gray-400 mb-4"/>
+            <div className="text-sm text-gray-600">
               {file ? file.name : 'Drop files here or click to upload'}
-            </span>
+            </div>
+            <div className="text-sm text-gray-600">
+              {file ? '' : 'Available formats: .txt, .pdf, .docx, .xslx, .csv'}
+            </div>
           </label>
 
           {file && (
-            <div className="mt-4">
-              <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
-                <div
-                  className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              <div className="mt-4">
+                <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
+                  <div
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                   style={{ width: `${uploadProgress}%` }}
                 />
               </div>

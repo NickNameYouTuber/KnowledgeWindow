@@ -1,12 +1,10 @@
 import React from 'react';
 
 interface QueryHistoryProps {
-  history: { query: string, response: string }[];
+  history: { query: string, response: string, timestamp: string }[];
 }
 
 const QueryHistory: React.FC<QueryHistoryProps> = ({ history }) => {
-  // Reverse the history array to display the most recent queries first
-  history.reverse();
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Query History</h2>
@@ -14,6 +12,7 @@ const QueryHistory: React.FC<QueryHistoryProps> = ({ history }) => {
         <div key={index} className="border p-2 mb-2">
           <div className="font-bold">Query: {item.query}</div>
           <div>Response: {item.response}</div>
+          <div className="text-sm text-gray-500">Timestamp: {item.timestamp}</div>
         </div>
       ))}
     </div>
