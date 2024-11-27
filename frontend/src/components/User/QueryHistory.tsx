@@ -5,6 +5,8 @@ interface QueryHistoryProps {
 }
 
 const QueryHistory: React.FC<QueryHistoryProps> = ({ history }) => {
+  // Reverse the history array to display the most recent queries first
+  history.reverse();
   return (
     <div className="p-4">
       <h2 className="text-xl font-bold mb-4">Query History</h2>
