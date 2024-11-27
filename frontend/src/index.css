@@ -40,4 +40,12 @@ textarea {
 select {
   @apply dark:bg-gray-800 dark:text-gray-100;
 }
+
+p {
+  @apply dark:text-gray-300;
+}
+
+pre {
+  @apply dark:bg-gray-800 dark:text-gray-100;
+}
 /* Добавьте другие стили для темной темы по мере необходимости */
