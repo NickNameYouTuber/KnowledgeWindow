@@ -1,13 +1,10 @@
 from flask import Blueprint, request, render_template_string, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-
 from app.config.database import UserQueryHistory, User, NeuralNetworkSettings
 from app.create_app import db, jwt
 from app.routes.knowledge_base_routes import upload_txt_file, upload_csv_file, search_knowledge_base, upload_pdf_file, \
     upload_xlsx_file, upload_docx_file
 from app.routes.auth_routes import register_user, login_user
-
-from flask import Blueprint, request, render_template_string
 from urllib.parse import unquote
 
 main_bp = Blueprint('main', __name__)
@@ -19,60 +16,69 @@ def hello():
 @main_bp.route('/upload-txt', methods=['POST'])
 @jwt_required()
 def upload_txt():
-    return upload_txt_file(request, db.session)
+    return upload_txt_file(request, db)
 
 @main_bp.route('/upload-csv', methods=['POST'])
 @jwt_required()
 def upload_csv():
-    return upload_csv_file(request, db.session)
+    return upload_csv_file(request, db)
 
 @main_bp.route('/upload-docx', methods=['POST'])
 @jwt_required()
 def upload_docx():
-    return upload_docx_file(request, db.session)
+    return upload_docx_file(request, db)
 
 @main_bp.route('/upload-xlsx', methods=['POST'])
 @jwt_required()
 def upload_xlsx():
-    return upload_xlsx_file(request, db.session)
+    return upload_xlsx_file(request, db)
 
 @main_bp.route('/upload-pdf', methods=['POST'])
 @jwt_required()
 def upload_pdf():
-    return upload_pdf_file(request, db.session)
+    return upload_pdf_file(request, db)
 
 @main_bp.route('/upload-md', methods=['POST'])
 @jwt_required()
 def upload_md():
-    return upload_txt_file(request, db.session)
+    return upload_txt_file(request, db)
+
 
 @main_bp.route('/search', methods=['POST'])
 def search():
-    query = request.args.get('query')
-    template = request.args.get('template',
-                                default="Answer clearly. Answer only questions about data. Answer only in Russian. Data: {data}. User query: {query}")
+    try:
+        query = request.args.get('query')
+        if not query:
+            return jsonify({"error": "No query provided"}), 400
 
-    # Здесь выполняется поиск в базе знаний и получение ответа
-    response_data = search_knowledge_base(query, template, db.session)
+        template = request.args.get('template',
+                                    default="Answer clearly. Answer only questions about data. Answer only in Russian. Data: {data}. User query: {query}")
 
-    # Получаем текущего пользователя по email
-    # !FOR TEST!
-    current_user_email = "123ababab123ababab@gmail.com"
-    current_user = User.query.filter_by(email=current_user_email).first()
+        # Search knowledge base
+        response_data = search_knowledge_base(query, template, db)
 
-    if not current_user:
-        return jsonify({"error": "User not found"}), 404
+        # Get current user
+        current_user_email = "123ababab123ababab@gmail.com"  # !FOR TEST!
+        current_user = User.query.filter_by(email=current_user_email).first()
 
-    # Сохраняем историю запроса
-    new_history = UserQueryHistory(
-        user_id=current_user.id,
-        query=query,
-        response=response_data['response']
-    )
-    db.session.add(new_history)
-    db.session.commit()
+        if not current_user:
+            return jsonify({"error": "User not found"}), 404
 
-    return jsonify(response_data)
+        # Save query history
+        new_history = UserQueryHistory(
+            user_id=current_user.id,
+            query=query,
+            response=response_data['response']
+        )
+        db.session.add(new_history)
+        db.session.commit()
+
+        return jsonify(response_data)
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error in search route: {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
 @main_bp.route('/history', methods=['GET'])
 @jwt_required()
@@ -102,10 +108,6 @@ def register():
 @main_bp.route('/login', methods=['POST'])
 def login():
     return login_user(request, db.session)
-
-
-
-
 
 @main_bp.route('/embed', methods=['GET'])
 def embed():

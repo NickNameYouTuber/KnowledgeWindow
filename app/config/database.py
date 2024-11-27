@@ -37,3 +37,12 @@ class NeuralNetworkSettings(db.Model):
 
     def __repr__(self):
         return f'<NeuralNetworkSettings {self.model}>'
+
+class VectorizedKnowledgeBase(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    vector = db.Column(db.ARRAY(db.Float), nullable=False)  # Векторное представление
+
+    def __repr__(self):
+        return f'<VectorizedKnowledgeBase {self.title}>'
