@@ -10,6 +10,7 @@ import {
   User
 } from 'lucide-react';
 import axios from "axios";
+import {useAuth} from "../AuthContext";
 
 const HomePage = () => {
   const [isLoginMode, setIsLoginMode] = useState(false);
@@ -101,13 +102,16 @@ const HomePage = () => {
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const response = await axios.post('http://127.0.0.1:5000/login', { email, password });
       const token = response.data.access_token;
-      localStorage.setItem('token', token);
+      const role = response.data.role; // Assuming the server returns the user role
+      console.log("Token: ", token, "Role: ", role);
+      login(token, role);
       alert('Login successful');
     } catch (error) {
       console.error("Error logging in: ", error);
@@ -165,12 +169,13 @@ const LoginForm: React.FC = () => {
 const RegisterForm: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('User'); // Устанавливаем значение по умолчанию
   const [name, setName] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await axios.post('http://127.0.0.1:5000/register', { email, password, name });
+      await axios.post('http://127.0.0.1:5000/register', { email, password, role, name });
       alert('Registration successful');
     } catch (error) {
       console.error("Error registering: ", error);
@@ -211,6 +216,20 @@ const RegisterForm: React.FC = () => {
               className="pl-10 w-full p-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
               placeholder="Enter your email"
             />
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <div className="relative">
+            <select
+              value={role}
+              onChange={(e) => setRole(e.target.value)}
+              className="pl-10 w-full p-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none"
+            >
+              <option value="Admin">Admin</option>
+              <option value="User">User</option>
+            </select>
           </div>
         </div>
 

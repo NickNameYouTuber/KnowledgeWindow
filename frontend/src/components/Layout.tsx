@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import { Home, Settings, User, LayoutDashboard } from 'lucide-react';
+import { useAuth } from '../AuthContext';
 
 const Layout = () => {
+  const { isAuthenticated, userRole, logout } = useAuth();
+
   return (
     <div className="min-h-screen bg-gray-50 flex">
       {/* Sidebar */}
@@ -18,20 +21,33 @@ const Layout = () => {
             <Home size={20} />
             <span>Home</span>
           </Link>
-          <Link
-            to="/admin"
-            className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
-          >
-            <Settings size={20} />
-            <span>Admin</span>
-          </Link>
-          <Link
-            to="/user"
-            className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
-          >
-            <User size={20} />
-            <span>User</span>
-          </Link>
+          {isAuthenticated && userRole === 'Admin' && (
+            <Link
+              to="/admin"
+              className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              <Settings size={20} />
+              <span>Admin</span>
+            </Link>
+          )}
+          {isAuthenticated && userRole === 'User' && (
+            <Link
+              to="/user"
+              className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              <User size={20} />
+              <span>User</span>
+            </Link>
+          )}
+          {isAuthenticated && (
+            <button
+              onClick={logout}
+              className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              <LayoutDashboard size={20} />
+              <span>Logout</span>
+            </button>
+          )}
         </nav>
       </div>
 

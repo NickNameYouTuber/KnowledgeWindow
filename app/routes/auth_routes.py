@@ -8,8 +8,9 @@ def register_user(request, session):
     data = request.get_json()
     email = data.get('email')
     password = data.get('password')
+    role = data.get('role')
 
-    if not email or not password:
+    if not email or not password or not role:
         return jsonify({"message": "Email and password are required"}), 400
 
     print("Email: ", email)
@@ -20,7 +21,7 @@ def register_user(request, session):
         return jsonify({"message": "User already exists"}), 400
 
     hashed_password = generate_password_hash(password, method='scrypt')
-    new_user = User(email=email, password=hashed_password)
+    new_user = User(email=email, password=hashed_password, role=role)
 
     session.add(new_user)
     session.commit()
@@ -40,4 +41,4 @@ def login_user(request, db):
         return jsonify({"error": "Invalid email or password"}), 401
 
     access_token = create_access_token(identity=email)
-    return jsonify({"access_token": access_token}), 200
+    return jsonify({"access_token": access_token, "role": user.role}), 200
