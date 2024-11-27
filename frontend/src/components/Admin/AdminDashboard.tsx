@@ -15,12 +15,31 @@ import {
 } from 'lucide-react';
 import { PromptTemplate } from "../../types";
 import axiosWithAuth from '../../axiosWithAuth';
+import Modal from 'react-modal';
+import PromptTemplates from "./PromptTemplate";
 
 const AdminDashboard = () => {
   const [file, setFile] = useState<File | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [files, setFiles] = useState<any[]>([]);
+  const [deleteModalIsOpen, setDeleteModalIsOpen] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState<number | null>(null);
+
+  useEffect(() => {
+    fetchFiles();
+  }, []);
+
+  const fetchFiles = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMessage('Token not found');
+      return;
+    }
+    const response = await axiosWithAuth(token).get('http://127.0.0.1:5000/files');
+    setFiles(response.data);
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -61,11 +80,46 @@ const AdminDashboard = () => {
         }
       );
       setMessage('File uploaded successfully!');
+      setTimeout(() => {
+        setFile(null);
+        setMessage(null);
+        fetchFiles();
+      }, 3000);
     } catch (error) {
       setMessage('Error uploading file');
     } finally {
       setIsUploading(false);
     }
+  };
+
+  const handleDelete = async (fileId: number) => {
+    setFileToDelete(fileId);
+    setDeleteModalIsOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (fileToDelete === null) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) {
+      setMessage('Token not found');
+      return;
+    }
+    try {
+      await axiosWithAuth(token).delete(`http://127.0.0.1:5000/files/${fileToDelete}`);
+      setMessage('File deleted successfully!');
+      fetchFiles();
+    } catch (error) {
+      setMessage('Error deleting file');
+    } finally {
+      setDeleteModalIsOpen(false);
+      setFileToDelete(null);
+    }
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalIsOpen(false);
+    setFileToDelete(null);
   };
 
   return (
@@ -123,11 +177,50 @@ const AdminDashboard = () => {
         )}
       </div>
 
+      {/* File List Section */}
+      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+        <div className="flex items-center space-x-2 mb-6">
+          <FileText className="h-5 w-5 text-blue-500" />
+          <h2 className="text-lg font-semibold">Uploaded Files</h2>
+        </div>
+
+        <div className="space-y-4">
+          {files.map((file) => (
+            <div key={file.id} className="flex items-center justify-between p-4 border-b border-gray-200">
+              <div>{file.title}</div>
+              <button onClick={() => handleDelete(file.id)} className="text-red-500 hover:text-red-600">
+                <Trash2 className="h-5 w-5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <EmbedCodeGenerator />
 
-      <PromptTemplates />
+      <PromptTemplates /> {/* Добавьте новый компонент */}
 
       <NeuralNetworkSettings />
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={deleteModalIsOpen}
+        onRequestClose={closeDeleteModal}
+        contentLabel="Confirm Delete"
+        className="bg-white p-6 rounded-lg shadow-lg mx-auto my-10 max-w-md"
+        overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+      >
+        <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+        <p className="mb-4">Are you sure you want to delete this file?</p>
+        <div className="flex justify-end space-x-4">
+          <button onClick={closeDeleteModal} className="bg-gray-300 text-gray-700 px-4 py-2 rounded">
+            Cancel
+          </button>
+          <button onClick={confirmDelete} className="bg-red-500 text-white px-4 py-2 rounded">
+            Delete
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
@@ -376,21 +469,6 @@ className="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-blue-
             />
           </div>
         </div>
-      </div>
-    </div>
-  );
-};
-
-const PromptTemplates = () => {
-  return (
-    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-      <div className="flex items-center space-x-2 mb-6">
-        <FileText className="h-5 w-5 text-blue-500" />
-        <h2 className="text-lg font-semibold">Prompt Templates</h2>
-      </div>
-
-      <div className="flex items-center justify-center h-32 text-gray-500">
-        В разработке
       </div>
     </div>
   );

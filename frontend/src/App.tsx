@@ -7,7 +7,7 @@ import UnauthorizedPage from "./UnauthorizedPage";
 import withAuth from "./withAuth";
 
 const AdminDashboard = lazy(() => import('./components/Admin/AdminDashboard'));
-const PromptTemplates = lazy(() => import('./components/Admin/PromptTemplates'));
+const PromptTemplates = lazy(() => import('./components/Admin/PromptTemplate'));
 const UserDashboard = lazy(() => import('./components/User/UserDashboard'));
 
 const AdminDashboardWithAuth = withAuth(AdminDashboard, ['Admin']);

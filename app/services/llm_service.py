@@ -1,8 +1,8 @@
-from openai import OpenAI
 from langchain import PromptTemplate
+from openai import OpenAI
+
 from app.config.database import NeuralNetworkSettings
 from typing import List, Dict
-
 
 def search_together(query: str, data: dict, template: str) -> str | None:
     print("Query: " + query)
@@ -44,11 +44,6 @@ def search_together(query: str, data: dict, template: str) -> str | None:
         if not batch_data:
             return None
 
-        prompt_template = PromptTemplate(
-            input_variables=["query", "data"],
-            template=template
-        )
-
         combined_data = {
             "title": "Combined Knowledge Base",
             "content": "\n\n".join([
@@ -58,6 +53,7 @@ def search_together(query: str, data: dict, template: str) -> str | None:
         }
 
         try:
+            prompt_template = PromptTemplate(template=template)
             messages = [{
                 "role": "system",
                 "content": prompt_template.format(query=query, data=combined_data)
@@ -100,7 +96,6 @@ def search_together(query: str, data: dict, template: str) -> str | None:
     # Если получили несколько ответов, суммируем их
     if len(responses) > 1:
         summary_prompt = PromptTemplate(
-            input_variables=["query", "responses"],
             template="""Given the following responses to the query: "{query}", 
             please provide a comprehensive summary that combines all relevant information:
 

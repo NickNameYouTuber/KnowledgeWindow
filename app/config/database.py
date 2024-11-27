@@ -38,3 +38,11 @@ class VectorizedKnowledgeBase(db.Model):
 
     def __repr__(self):
         return f'<VectorizedKnowledgeBase {self.title}>'
+
+class PromptTemplate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+
+    def __repr__(self):
+        return f'<PromptTemplate {self.name}>'

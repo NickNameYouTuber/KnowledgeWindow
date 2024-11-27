@@ -1,6 +1,6 @@
 from flask import Blueprint, request, render_template_string, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.config.database import UserQueryHistory, User, NeuralNetworkSettings
+from app.config.database import UserQueryHistory, User, NeuralNetworkSettings, VectorizedKnowledgeBase, PromptTemplate
 from app.create_app import db, jwt
 from app.routes.knowledge_base_routes import upload_txt_file, upload_csv_file, search_knowledge_base, upload_pdf_file, \
     upload_xlsx_file, upload_docx_file
@@ -42,7 +42,6 @@ def upload_pdf():
 @jwt_required()
 def upload_md():
     return upload_txt_file(request, db)
-
 
 @main_bp.route('/search', methods=['POST'])
 def search():
@@ -365,3 +364,50 @@ def update_settings():
     settings.model = data['model']
     db.session.commit()
     return jsonify({"message": "Settings updated successfully"})
+
+@main_bp.route('/files', methods=['GET'])
+@jwt_required()
+def get_files():
+    files = VectorizedKnowledgeBase.query.all()
+    return jsonify([{
+        "id": file.id,
+        "title": file.title,
+        "content": file.content
+    } for file in files])
+
+@main_bp.route('/files/<int:file_id>', methods=['DELETE'])
+@jwt_required()
+def delete_file(file_id):
+    file = VectorizedKnowledgeBase.query.get(file_id)
+    if not file:
+        return jsonify({"error": "File not found"}), 404
+    db.session.delete(file)
+    db.session.commit()
+    return jsonify({"message": "File deleted successfully"})
+
+@main_bp.route('/prompt-template', methods=['GET'])
+@jwt_required()
+def get_prompt_template():
+    template = PromptTemplate.query.first()
+    if not template:
+        return jsonify({"error": "Template not found"}), 404
+    return jsonify({
+        "id": template.id,
+        "name": template.name,
+        "content": template.content
+    })
+
+@main_bp.route('/prompt-template', methods=['PUT'])
+@jwt_required()
+def update_prompt_template():
+    data = request.json
+    if not data or not data.get('content'):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    template = PromptTemplate.query.first()
+    if not template:
+        return jsonify({"error": "Template not found"}), 404
+
+    template.content = data['content']
+    db.session.commit()
+    return jsonify({"message": "Template updated successfully"})
