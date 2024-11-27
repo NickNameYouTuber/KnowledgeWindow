@@ -1,7 +1,7 @@
 from flask import Blueprint, request, render_template_string, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 
-from app.config.database import UserQueryHistory, User
+from app.config.database import UserQueryHistory, User, NeuralNetworkSettings
 from app.create_app import db, jwt
 from app.routes.knowledge_base_routes import upload_txt_file, upload_csv_file, search_knowledge_base, upload_pdf_file, \
     upload_xlsx_file, upload_docx_file
@@ -144,3 +144,48 @@ def embed():
     """
 
     return render_template_string(html)
+
+@main_bp.route('/neural-network/settings', methods=['GET'])
+@jwt_required()
+def get_settings():
+    settings = NeuralNetworkSettings.query.first()
+    if not settings:
+        return jsonify({"error": "Settings not found"}), 404
+    return jsonify({
+        "url": settings.url,
+        "api_key": settings.api_key,
+        "model": settings.model
+    })
+
+@main_bp.route('/neural-network/settings', methods=['POST'])
+@jwt_required()
+def create_settings():
+    data = request.json
+    if not data or not data.get('url') or not data.get('api_key') or not data.get('model'):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    settings = NeuralNetworkSettings(
+        url=data['url'],
+        api_key=data['api_key'],
+        model=data['model']
+    )
+    db.session.add(settings)
+    db.session.commit()
+    return jsonify({"message": "Settings created successfully"})
+
+@main_bp.route('/neural-network/settings', methods=['PUT'])
+@jwt_required()
+def update_settings():
+    data = request.json
+    if not data or not data.get('url') or not data.get('api_key') or not data.get('model'):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    settings = NeuralNetworkSettings.query.first()
+    if not settings:
+        return jsonify({"error": "Settings not found"}), 404
+
+    settings.url = data['url']
+    settings.api_key = data['api_key']
+    settings.model = data['model']
+    db.session.commit()
+    return jsonify({"message": "Settings updated successfully"})

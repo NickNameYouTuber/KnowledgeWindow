@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Upload, Code2, Palette, Layout, Copy, CheckCheck, FileText, Edit, Trash2 } from 'lucide-react';
-import {PromptTemplate} from "../../types";
+import { PromptTemplate } from "../../types";
+import axiosWithAuth from '../../axiosWithAuth';
 
 const AdminDashboard = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -28,12 +29,15 @@ const AdminDashboard = () => {
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post(
+      if (!token) {
+        setMessage('Token not found');
+        return;
+      }
+      await axiosWithAuth(token).post(
         `http://127.0.0.1:5000/upload-${file.name.split('.').pop()}`,
         formData,
         {
           headers: {
-            'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data',
           },
           onUploadProgress: (progressEvent) => {
@@ -110,6 +114,8 @@ const AdminDashboard = () => {
       <EmbedCodeGenerator />
 
       <PromptTemplates />
+
+      <NeuralNetworkSettings />
     </div>
   );
 };
@@ -225,26 +231,46 @@ const PromptTemplates = () => {
   }, []);
 
   const fetchTemplates = async () => {
-    const response = await axios.get('http://127.0.0.1:5000/templates');
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+    const response = await axiosWithAuth(token).get('http://127.0.0.1:5000/templates');
     setTemplates(response.data);
   };
 
   const handleCreate = async () => {
-    await axios.post('http://127.0.0.1:5000/templates', newTemplate);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+    await axiosWithAuth(token).post('http://127.0.0.1:5000/templates', newTemplate);
     setNewTemplate({ name: '', template: '' });
     fetchTemplates();
   };
 
   const handleUpdate = async (id: number) => {
     if (editingTemplate) {
-      await axios.put(`http://127.0.0.1:5000/templates/${id}`, editingTemplate);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        console.error('Token not found');
+        return;
+      }
+      await axiosWithAuth(token).put(`http://127.0.0.1:5000/templates/${id}`, editingTemplate);
       setEditingTemplate(null);
       fetchTemplates();
     }
   };
 
   const handleDelete = async (id: number) => {
-    await axios.delete(`http://127.0.0.1:5000/templates/${id}`);
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+    await axiosWithAuth(token).delete(`http://127.0.0.1:5000/templates/${id}`);
     fetchTemplates();
   };
 
@@ -319,6 +345,87 @@ const PromptTemplates = () => {
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  );
+};
+
+const NeuralNetworkSettings = () => {
+  const [settings, setSettings] = useState({ url: '', api_key: '', model: '' });
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+    const response = await axiosWithAuth(token).get('http://127.0.0.1:5000/neural-network/settings');
+    setSettings(response.data);
+  };
+
+  const handleUpdate = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+    await axiosWithAuth(token).post('http://127.0.0.1:5000/neural-network/settings', settings);
+    setEditing(false);
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div className="flex items-center space-x-2 mb-6">
+        <FileText className="h-5 w-5 text-blue-500" />
+        <h2 className="text-lg font-semibold">Neural Network Settings</h2>
+      </div>
+
+      <div className="space-y-6">
+        {editing ? (
+          <>
+            <input
+              type="text"
+              value={settings.url}
+              onChange={(e) => setSettings({ ...settings, url: e.target.value })}
+              placeholder="URL"
+              className="border p-2 w-full mb-2"
+            />
+            <input
+              type="text"
+              value={settings.api_key}
+              onChange={(e) => setSettings({ ...settings, api_key: e.target.value })}
+              placeholder="API Key"
+              className="border p-2 w-full mb-2"
+            />
+            <input
+              type="text"
+              value={settings.model}
+              onChange={(e) => setSettings({ ...settings, model: e.target.value })}
+              placeholder="Model"
+              className="border p-2 w-full mb-2"
+            />
+            <button onClick={handleUpdate} className="bg-green-500 text-white p-2 mr-2">
+              Save
+            </button>
+            <button onClick={() => setEditing(false)} className="bg-red-500 text-white p-2">
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="font-bold">URL: {settings.url}</div>
+            <div className="font-bold">API Key: {settings.api_key}</div>
+            <div className="font-bold">Model: {settings.model}</div>
+            <button onClick={() => setEditing(true)} className="bg-yellow-500 text-white p-2">
+              <Edit className="h-4 w-4" />
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

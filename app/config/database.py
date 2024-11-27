@@ -28,3 +28,12 @@ class UserQueryHistory(db.Model):
 
     def __repr__(self):
         return f'<UserQueryHistory {self.query}>'
+
+class NeuralNetworkSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    url = db.Column(db.String(255), nullable=False)
+    api_key = db.Column(db.String(255), nullable=False)
+    model = db.Column(db.String(255), nullable=False)
+
+    def __repr__(self):
+        return f'<NeuralNetworkSettings {self.model}>'
