@@ -25,28 +25,33 @@ def search_together(query: str, data: dict, template: str) -> str | None:
         template=template
     )
 
-    # Format messages for API request
-    messages = [
-        {
-            "role": "system",
-            "content": prompt_template.format(query=query, data=data)
-        }
-    ]
+    # Collect responses from each file
+    responses = []
+    for kb_id, kb_data in data.items():
+        # Format messages for API request
+        messages = [
+            {
+                "role": "system",
+                "content": prompt_template.format(query=query, data=kb_data)
+            }
+        ]
 
-    try:
-        response = client.chat.completions.create(
-            model=settings.model,
-            messages=messages
-        )
+        try:
+            response = client.chat.completions.create(
+                model=settings.model,
+                messages=messages
+            )
 
-        # Process response
-        if response.choices:
-            for choice in response.choices:
-                print(choice.message.content)
-            return response.choices[0].message.content
+            # Process response
+            if response.choices:
+                for choice in response.choices:
+                    print(choice.message.content)
+                responses.append(response.choices[0].message.content)
 
-        return "No response from model"
+        except Exception as e:
+            print(f"Error occurred: {e}")
+            return None
 
-    except Exception as e:
-        print(f"Error occurred: {e}")
-        return None
+    # Combine responses into a final answer
+    final_response = "\n".join(responses)
+    return final_response

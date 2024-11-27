@@ -1,6 +1,7 @@
 from flask import request, jsonify
 from werkzeug.utils import secure_filename
-from app.services.etl_service import process_txt_file, process_csv_file, process_docx_file, process_xlsx_file, process_pdf_file
+from app.services.etl_service import process_txt_file, process_csv_file, process_docx_file, process_xlsx_file, \
+    process_pdf_file, process_md_file
 from app.repositories.knowledge_base_repository import get_all_knowledge_bases, create_knowledge_base
 import tempfile
 
@@ -76,6 +77,20 @@ def upload_pdf_file(request, db):
         return jsonify({"message": "File processed successfully"})
     else:
         return jsonify({"error": "Invalid file type. Only .pdf files are allowed."}), 400
+
+def upload_md_file(request, db):
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+    file = request.files['file']
+    if file.filename.endswith(".md"):
+        file_content = file.read()
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".md") as temp_file:
+            temp_file.write(file_content)
+            temp_file_path = temp_file.name
+        process_md_file(temp_file_path, db)
+        return jsonify({"message": "File processed successfully"})
+    else:
+        return jsonify({"error": "Invalid file type. Only .md files are allowed."}), 400
 
 def search_knowledge_base(query, template, db):
     knowledge_bases = get_all_knowledge_bases(db)

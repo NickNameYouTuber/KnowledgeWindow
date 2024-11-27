@@ -57,3 +57,12 @@ def process_pdf_file(file_path, db):
         content=content
     )
     create_knowledge_base(db, knowledge_base_entry)
+
+def process_md_file(file_path, db):
+    with open(file_path, "r") as f:
+        content = f.read()
+    knowledge_base_entry = KnowledgeBaseCreate(
+        title=file_path.split("/")[-1],
+        content=content
+    )
+    create_knowledge_base(db, knowledge_base_entry)

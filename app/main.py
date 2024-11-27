@@ -38,6 +38,11 @@ def upload_xlsx():
 def upload_pdf():
     return upload_pdf_file(request, db.session)
 
+@main_bp.route('/upload-md', methods=['POST'])
+@jwt_required()
+def upload_md():
+    return upload_txt_file(request, db.session)
+
 @main_bp.route('/search', methods=['POST'])
 @jwt_required()
 def search():
