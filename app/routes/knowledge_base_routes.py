@@ -125,6 +125,7 @@ def upload_md_file(request, db):
     else:
         return jsonify({"error": "Invalid file type. Only .md files are allowed."}), 400
 
+
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 

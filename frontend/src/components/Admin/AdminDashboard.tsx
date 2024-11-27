@@ -17,6 +17,8 @@ import { PromptTemplate } from "../../types";
 import axiosWithAuth from '../../axiosWithAuth';
 import Modal from 'react-modal';
 import PromptTemplates from "./PromptTemplate";
+import RepoUploader from "./RepoUploader";
+import DocumentUploader from "./DocumentUploader";
 
 const AdminDashboard = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -151,6 +153,9 @@ const AdminDashboard = () => {
             </div>
           </label>
 
+
+
+
           {file && (
               <div className="mt-4">
                 <div className="w-full bg-gray-100 rounded-full h-2 mb-4">
@@ -176,6 +181,8 @@ const AdminDashboard = () => {
           </div>
         )}
       </div>
+
+       <DocumentUploader />
 
       {/* File List Section */}
       <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">

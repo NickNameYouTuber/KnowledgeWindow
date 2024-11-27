@@ -1,11 +1,22 @@
+import os
+import tempfile
+
+import chardet
+import git
+from atlassian import Confluence
 from flask import Blueprint, request, render_template_string, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from langchain.document_transformers import html2text
+from notion_client import Client
+
 from app.config.database import UserQueryHistory, User, NeuralNetworkSettings, VectorizedKnowledgeBase, PromptTemplate
 from app.create_app import db, jwt
 from app.routes.knowledge_base_routes import upload_txt_file, upload_csv_file, search_knowledge_base, upload_pdf_file, \
-    upload_xlsx_file, upload_docx_file
+    upload_xlsx_file, upload_docx_file, upload_md_file
 from app.routes.auth_routes import register_user, login_user
 from urllib.parse import unquote
+
+from app.services.vectorize_service import text_to_vector
 
 main_bp = Blueprint('main', __name__)
 
@@ -41,7 +52,226 @@ def upload_pdf():
 @main_bp.route('/upload-md', methods=['POST'])
 @jwt_required()
 def upload_md():
-    return upload_txt_file(request, db)
+    return upload_md_file(request, db)
+
+@main_bp.route('/upload-repo', methods=['POST'])
+@jwt_required()
+def upload_repo():
+    repo_url = request.json.get('repo_url')
+    if not repo_url:
+        return jsonify({"error": "No repository URL provided"}), 400
+
+    try:
+        # Создаем временную директорию для клонирования репозитория
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            # Клонируем репозиторий во временную директорию
+            git.Repo.clone_from(repo_url, tmpdirname)
+
+            # Проходим по всем файлам в репозитории
+            for root, dirs, files in os.walk(tmpdirname):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    with open(file_path, 'rb') as f:
+                        raw_data = f.read()
+
+                    # Определяем кодировку файла
+                    result = chardet.detect(raw_data)
+                    encoding = result['encoding']
+
+                    # Если кодировка не определена, используем UTF-8 по умолчанию
+                    if encoding is None:
+                        encoding = 'utf-8'
+
+                    # Читаем файл с правильной кодировкой
+                    file_content = raw_data.decode(encoding, errors='ignore')
+
+                    # Определяем тип файла по расширению
+                    file_extension = file.split('.')[-1].lower()
+                    if file_extension in ['txt', 'csv', 'docx', 'xlsx', 'pdf', 'md']:
+                        vector = text_to_vector(file_content)
+                        new_entry = VectorizedKnowledgeBase(title=file, content=file_content, vector=vector)
+                        db.session.add(new_entry)
+
+            db.session.commit()
+            return jsonify({"message": "Repository processed and files added successfully"})
+
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error processing repository: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+
+@main_bp.route('/upload-confluence', methods=['POST'])
+@jwt_required()
+def upload_confluence():
+    try:
+        data = request.json
+        workspace_url = data.get('workspace_url')
+        api_key = data.get('api_key')
+        space_key = data.get('space_key')
+
+        if not all([workspace_url, api_key, space_key]):
+            return jsonify({"error": "Missing required fields"}), 400
+
+        # Инициализация клиента Confluence
+        confluence = Confluence(
+            url=workspace_url,
+            token=api_key
+        )
+
+        # Получение всех страниц из указанного пространства
+        pages = confluence.get_all_pages_from_space(space_key, start=0, limit=500)
+
+        # HTML в текст конвертер
+        h = html2text.HTML2Text()
+        h.ignore_links = True
+        h.ignore_images = True
+
+        for page in pages:
+            try:
+                # Получение содержимого страницы
+                page_content = confluence.get_page_by_id(page['id'], expand='body.storage')
+                html_content = page_content['body']['storage']['value']
+
+                # Конвертация HTML в текст
+                text_content = h.handle(html_content)
+
+                # Создание вектора из текста
+                vector = text_to_vector(text_content)
+
+                # Сохранение в базу данных
+                new_entry = VectorizedKnowledgeBase(
+                    title=page['title'],
+                    content=text_content,
+                    vector=vector,
+                    source='confluence',
+                    metadata={
+                        'page_id': page['id'],
+                        'space_key': space_key,
+                        'url': f"{workspace_url}/wiki/spaces/{space_key}/pages/{page['id']}"
+                    }
+                )
+                db.session.add(new_entry)
+
+            except Exception as e:
+                print(f"Error processing page {page['title']}: {str(e)}")
+                continue
+
+        db.session.commit()
+        return jsonify({"message": f"Successfully processed {len(pages)} Confluence pages"})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+@main_bp.route('/upload-notion', methods=['POST'])
+@jwt_required()
+def upload_notion():
+    try:
+        data = request.json
+        api_key = data.get('api_key')
+        workspace_url = data.get('workspace_url')
+
+        if not api_key:
+            return jsonify({"error": "Missing API key"}), 400
+
+        # Инициализация клиента Notion
+        notion = Client(auth=api_key)
+
+        # Получение списка всех страниц
+        response = notion.search()
+
+        for page in response['results']:
+            try:
+                if page['object'] != 'page':
+                    continue
+
+                # Получение содержимого страницы
+                page_content = notion.blocks.children.list(page['id'])
+
+                # Извлечение текста из блоков
+                text_content = ""
+                for block in page_content['results']:
+                    if block['type'] == 'paragraph' and 'text' in block['paragraph']:
+                        for text in block['paragraph']['text']:
+                            if 'plain_text' in text:
+                                text_content += text['plain_text'] + "\n"
+                    elif block['type'] == 'heading_1' and 'text' in block['heading_1']:
+                        for text in block['heading_1']['text']:
+                            if 'plain_text' in text:
+                                text_content += "# " + text['plain_text'] + "\n"
+                    elif block['type'] == 'heading_2' and 'text' in block['heading_2']:
+                        for text in block['heading_2']['text']:
+                            if 'plain_text' in text:
+                                text_content += "## " + text['plain_text'] + "\n"
+                    elif block['type'] == 'heading_3' and 'text' in block['heading_3']:
+                        for text in block['heading_3']['text']:
+                            if 'plain_text' in text:
+                                text_content += "### " + text['plain_text'] + "\n"
+
+                # Создание вектора из текста
+                if text_content:
+                    vector = text_to_vector(text_content)
+
+                    # Сохранение в базу данных
+                    new_entry = VectorizedKnowledgeBase(
+                        title=page.get('properties', {}).get('title', [{}])[0].get('text', {}).get('content',
+                                                                                                   'Untitled'),
+                        content=text_content,
+                        vector=vector,
+                        source='notion',
+                        metadata={
+                            'page_id': page['id'],
+                            'url': page['url'] if 'url' in page else workspace_url
+                        }
+                    )
+                    db.session.add(new_entry)
+
+            except Exception as e:
+                print(f"Error processing Notion page {page.get('id')}: {str(e)}")
+                continue
+
+        db.session.commit()
+        return jsonify({"message": f"Successfully processed Notion workspace content"})
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
+
+
+# Вспомогательный маршрут для получения списка документов по источнику
+@main_bp.route('/documents/<source>', methods=['GET'])
+@jwt_required()
+def get_documents_by_source(source):
+    try:
+        documents = VectorizedKnowledgeBase.query.filter_by(source=source).all()
+        return jsonify([{
+            'id': doc.id,
+            'title': doc.title,
+            'source': doc.source,
+            'metadata': doc.metadata,
+            'created_at': doc.created_at.isoformat()
+        } for doc in documents])
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# Маршрут для удаления документа
+@main_bp.route('/documents/<int:doc_id>', methods=['DELETE'])
+@jwt_required()
+def delete_document(doc_id):
+    try:
+        document = VectorizedKnowledgeBase.query.get(doc_id)
+        if not document:
+            return jsonify({"error": "Document not found"}), 404
+
+        db.session.delete(document)
+        db.session.commit()
+        return jsonify({"message": "Document deleted successfully"})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
 
 @main_bp.route('/search', methods=['POST'])
 def search():
