@@ -10,9 +10,9 @@ main_bp = Blueprint('main', __name__)
 # Под-Blueprint для embed
 embed_bp = Blueprint('embed', __name__)
 
-# TODO : сделать так, чтобы url брался из env
 DATABASE_PORT = "7471"
-DATABASE_URL = f"http://database_api:{DATABASE_PORT}"
+DATABASE_URL = os.getenv("DATABASE_URL", f"http://database_api:{DATABASE_PORT}")
+
 
 @embed_bp.route('/', methods=['GET'])
 def embed():

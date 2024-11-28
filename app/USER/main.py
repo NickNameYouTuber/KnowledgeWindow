@@ -15,9 +15,9 @@ from app.DATABASE.services.vectorize_service import text_to_vector
 
 main_bp = Blueprint('main', __name__)
 
-# TODO : сделать так, чтобы url брался из env
+
 DATABASE_PORT = "7471"
-DATABASE_URL = f"http://database_api:{DATABASE_PORT}"
+DATABASE_URL = os.getenv("DATABASE_URL", f"http://database_api:{DATABASE_PORT}")
 
 
 @main_bp.route('/', methods=['GET'])
