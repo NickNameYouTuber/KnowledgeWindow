@@ -2,12 +2,17 @@ from flask import Blueprint, request, render_template_string, jsonify
 from flask_jwt_extended import jwt_required
 from create_app import db
 from urllib.parse import unquote
+import requests
 
 # Основной Blueprint
 main_bp = Blueprint('main', __name__)
 
 # Под-Blueprint для embed
 embed_bp = Blueprint('embed', __name__)
+
+# TODO : сделать так, чтобы url брался из env
+DATABASE_PORT = "7471"
+DATABASE_URL = f"http://database_api:{DATABASE_PORT}"
 
 @embed_bp.route('/', methods=['GET'])
 def embed():
@@ -226,47 +231,89 @@ upload_bp = Blueprint('upload', __name__)
 @upload_bp.route('/upload-txt', methods=['POST'])
 @jwt_required()
 def upload_txt():
-    pass
+    file = request.files['file']
+    if file:
+        content = file.read().decode('utf-8')
+        response = requests.post(f"{DATABASE_URL}/upload-txt", json={"content": content})
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "No file provided"}), 400
 
 @upload_bp.route('/upload-pdf', methods=['POST'])
 @jwt_required()
 def upload_pdf():
-    pass
+    file = request.files['file']
+    if file:
+        content = file.read().decode('utf-8')
+        response = requests.post(f"{DATABASE_URL}/upload-pdf", json={"content": content})
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "No file provided"}), 400
 
 @upload_bp.route('/upload-docx', methods=['POST'])
 @jwt_required()
 def upload_docx():
-    pass
+    file = request.files['file']
+    if file:
+        content = file.read().decode('utf-8')
+        response = requests.post(f"{DATABASE_URL}/upload-docx", json={"content": content})
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "No file provided"}), 400
 
 @upload_bp.route('/upload-xlsx', methods=['POST'])
 @jwt_required()
 def upload_xlsx():
-    pass
+    file = request.files['file']
+    if file:
+        content = file.read().decode('utf-8')
+        response = requests.post(f"{DATABASE_URL}/upload-xlsx", json={"content": content})
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "No file provided"}), 400
 
 @upload_bp.route('/upload-md', methods=['POST'])
 @jwt_required()
 def upload_md():
-    pass
+    file = request.files['file']
+    if file:
+        content = file.read().decode('utf-8')
+        response = requests.post(f"{DATABASE_URL}/upload-md", json={"content": content})
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "No file provided"}), 400
 
 @upload_bp.route('/upload-repo', methods=['POST'])
 @jwt_required()
 def upload_repo():
-    pass
+    repo_url = request.json.get('repo_url')
+    if repo_url:
+        response = requests.post(f"{DATABASE_URL}/upload-repo", json={"repo_url": repo_url})
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "No repository URL provided"}), 400
 
 @upload_bp.route('/upload-csv', methods=['POST'])
 @jwt_required()
 def upload_csv():
-    pass
+    file = request.files['file']
+    if file:
+        content = file.read().decode('utf-8')
+        response = requests.post(f"{DATABASE_URL}/upload-csv", json={"content": content})
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "No file provided"}), 400
 
 @upload_bp.route('/upload-confluence', methods=['POST'])
 @jwt_required()
 def upload_confluence():
-    pass
+    data = request.json
+    if data:
+        response = requests.post(f"{DATABASE_URL}/upload-confluence", json=data)
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "Missing required fields"}), 400
 
 @upload_bp.route('/upload-notion', methods=['POST'])
 @jwt_required()
 def upload_notion():
-    pass
+    data = request.json
+    if data:
+        response = requests.post(f"{DATABASE_URL}/upload-notion", json=data)
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "Missing required fields"}), 400
 
 # Под-Blueprint для neural_network
 neural_network_bp = Blueprint('neural_network', __name__)
@@ -274,46 +321,26 @@ neural_network_bp = Blueprint('neural_network', __name__)
 @neural_network_bp.route('/settings', methods=['GET'])
 @jwt_required()
 def get_settings():
-    # TODO: Сделать запрос на получение настроек
-    settings = ...
-    if not settings:
-        return jsonify({"error": "Settings not found"}), 404
-    return jsonify({
-        "url": settings.url,
-        "api_key": settings.api_key,
-        "model": settings.model
-    })
+    response = requests.get(f"{DATABASE_URL}/neural-network/settings")
+    return jsonify(response.json()), response.status_code
 
 @neural_network_bp.route('/settings', methods=['POST'])
 @jwt_required()
 def create_settings():
     data = request.json
-    if not data or not data.get('url') or not data.get('api_key') or not data.get('model'):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    # TODO: Сделать запрос на создание настроек
-    settings = ...
-    db.session.add(settings)
-    db.session.commit()
-    return jsonify({"message": "Settings created successfully"})
+    if data:
+        response = requests.post(f"{DATABASE_URL}/neural-network/settings", json=data)
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "Missing required fields"}), 400
 
 @neural_network_bp.route('/settings', methods=['PUT'])
 @jwt_required()
 def update_settings():
     data = request.json
-    if not data or not data.get('url') or not data.get('api_key') or not data.get('model'):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    # TODO: Сделать запрос на обновление настроек
-    settings =  ...
-    if not settings:
-        return jsonify({"error": "Settings not found"}), 404
-
-    settings.url = data['url']
-    settings.api_key = data['api_key']
-    settings.model = data['model']
-    db.session.commit()
-    return jsonify({"message": "Settings updated successfully"})
+    if data:
+        response = requests.put(f"{DATABASE_URL}/neural-network/settings", json=data)
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "Missing required fields"}), 400
 
 # Под-Blueprint для files
 files_bp = Blueprint('files', __name__)
@@ -321,24 +348,14 @@ files_bp = Blueprint('files', __name__)
 @files_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_files():
-    # TODO: Сделать запрос на получение файлов
-    files = ...
-    return jsonify([{
-        "id": file.id,
-        "title": file.title,
-        "content": file.content
-    } for file in files])
+    response = requests.get(f"{DATABASE_URL}/files")
+    return jsonify(response.json()), response.status_code
 
 @files_bp.route('/<int:file_id>', methods=['DELETE'])
 @jwt_required()
 def delete_file(file_id):
-    # TODO: Сделать запрос на удаление файла
-    file = ...
-    if not file:
-        return jsonify({"error": "File not found"}), 404
-    db.session.delete(file)
-    db.session.commit()
-    return jsonify({"message": "File deleted successfully"})
+    response = requests.delete(f"{DATABASE_URL}/files/{file_id}")
+    return jsonify(response.json()), response.status_code
 
 # Под-Blueprint для prompt_template
 prompt_template_bp = Blueprint('prompt_template', __name__)
@@ -346,31 +363,17 @@ prompt_template_bp = Blueprint('prompt_template', __name__)
 @prompt_template_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_prompt_template():
-    # TODO: Сделать запрос на получение шаблона
-    template = ...
-    if not template:
-        return jsonify({"error": "Template not found"}), 404
-    return jsonify({
-        "id": template.id,
-        "name": template.name,
-        "content": template.content
-    })
+    response = requests.get(f"{DATABASE_URL}/prompt-template")
+    return jsonify(response.json()), response.status_code
 
 @prompt_template_bp.route('/', methods=['PUT'])
 @jwt_required()
 def update_prompt_template():
     data = request.json
-    if not data or not data.get('content'):
-        return jsonify({"error": "Missing required fields"}), 400
-
-    # TODO: Сделать запрос на обновление шаблона
-    template = ...
-    if not template:
-        return jsonify({"error": "Template not found"}), 404
-
-    template.content = data['content']
-    db.session.commit()
-    return jsonify({"message": "Template updated successfully"})
+    if data:
+        response = requests.put(f"{DATABASE_URL}/prompt-template", json=data)
+        return jsonify(response.json()), response.status_code
+    return jsonify({"error": "Missing required fields"}), 400
 
 # Регистрация под-Blueprint'ов в основном Blueprint'е
 main_bp.register_blueprint(embed_bp, url_prefix='/embed')
