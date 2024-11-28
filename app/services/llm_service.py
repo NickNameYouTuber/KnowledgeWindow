@@ -1,3 +1,4 @@
+from sklearn.metrics.pairwise import cosine_similarity
 from langchain import PromptTemplate
 from openai import OpenAI
 

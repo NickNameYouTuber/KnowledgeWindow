@@ -209,6 +209,8 @@ const AdminDashboard = () => {
 
       <NeuralNetworkSettings />
 
+      <EmbeddingSettings/>
+
       {/* Delete Confirmation Modal */}
       <Modal
         isOpen={deleteModalIsOpen}
@@ -552,6 +554,79 @@ const NeuralNetworkSettings = () => {
             <div className="font-bold">URL: {settings.url}</div>
             <div className="font-bold">API Key: {settings.api_key}</div>
             <div className="font-bold">Model: {settings.model}</div>
+            <button onClick={() => setEditing(true)} className="bg-yellow-500 text-white p-2">
+              <Edit className="h-4 w-4" />
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const EmbeddingSettings = () => {
+  const [settings, setSettings] = useState({ model: '', chunk_size: '' });
+  const [editing, setEditing] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+    const response = await axiosWithAuth(token).get('http://127.0.0.1:5000/embedding/settings');
+    setSettings(response.data);
+  };
+
+  const handleUpdate = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+    await axiosWithAuth(token).post('http://127.0.0.1:5000/embedding/settings', settings);
+    setEditing(false);
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+      <div className="flex items-center space-x-2 mb-6">
+        <FileText className="h-5 w-5 text-blue-500" />
+        <h2 className="text-lg font-semibold">Embedding Settings</h2>
+      </div>
+
+      <div className="space-y-6">
+        {editing ? (
+          <>
+            <input
+              type="text"
+              value={settings.model}
+              onChange={(e) => setSettings({ ...settings, model: e.target.value })}
+              placeholder="Model"
+              className="border p-2 w-full mb-2"
+            />
+            <input
+              type="number"
+              value={settings.chunk_size}
+              onChange={(e) => setSettings({ ...settings, chunk_size: e.target.value })}
+              placeholder="Chunk Size"
+              className="border p-2 w-full mb-2"
+            />
+            <button onClick={handleUpdate} className="bg-green-500 text-white p-2 mr-2">
+              Save
+            </button>
+            <button onClick={() => setEditing(false)} className="bg-red-500 text-white p-2">
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="font-bold">Model: {settings.model}</div>
+            <div className="font-bold">Chunk Size: {settings.chunk_size}</div>
             <button onClick={() => setEditing(true)} className="bg-yellow-500 text-white p-2">
               <Edit className="h-4 w-4" />
             </button>

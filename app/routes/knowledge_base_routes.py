@@ -4,6 +4,7 @@ import PyPDF2
 import numpy as np
 import openpyxl
 from flask import request, jsonify
+from flask_sqlalchemy.session import Session
 from keras.src.losses import cosine_similarity
 from werkzeug.utils import secure_filename
 
@@ -220,7 +221,7 @@ def find_relevant_files(query_vector, db):
 
 def search_knowledge_base(query, template, db):
     """
-    Search the knowledge base using vector similarity
+    Search the knowledge base using hybrid search
     """
     try:
         # Get query vector

@@ -641,3 +641,45 @@ def update_prompt_template():
     template.content = data['content']
     db.session.commit()
     return jsonify({"message": "Template updated successfully"})
+
+@main_bp.route('/embedding/settings', methods=['GET'])
+@jwt_required()
+def get_embedding_settings():
+    settings = EmbeddingSettings.query.first()
+    if not settings:
+        return jsonify({"error": "Settings not found"}), 404
+    return jsonify({
+        "model": settings.model,
+        "chunk_size": settings.chunk_size
+    })
+
+@main_bp.route('/embedding/settings', methods=['POST'])
+@jwt_required()
+def create_embedding_settings():
+    data = request.json
+    if not data or not data.get('model') or not data.get('chunk_size'):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    settings = EmbeddingSettings(
+        model=data['model'],
+        chunk_size=data['chunk_size']
+    )
+    db.session.add(settings)
+    db.session.commit()
+    return jsonify({"message": "Settings created successfully"})
+
+@main_bp.route('/embedding/settings', methods=['PUT'])
+@jwt_required()
+def update_embedding_settings():
+    data = request.json
+    if not data or not data.get('model') or not data.get('chunk_size'):
+        return jsonify({"error": "Missing required fields"}), 400
+
+    settings = EmbeddingSettings.query.first()
+    if not settings:
+        return jsonify({"error": "Settings not found"}), 404
+
+    settings.model = data['model']
+    settings.chunk_size = data['chunk_size']
+    db.session.commit()
+    return jsonify({"message": "Settings updated successfully"})

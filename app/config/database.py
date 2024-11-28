@@ -46,3 +46,11 @@ class PromptTemplate(db.Model):
 
     def __repr__(self):
         return f'<PromptTemplate {self.name}>'
+
+class EmbeddingSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    model = db.Column(db.String(255), nullable=False)
+    chunk_size = db.Column(db.Integer, nullable=False)
+
+    def __repr__(self):
+        return f'<EmbeddingSettings {self.model}>'

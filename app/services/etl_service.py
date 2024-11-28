@@ -13,13 +13,15 @@ from app.services.vectorize_service import text_to_vector
 
 def process_txt_file(file_path: str, db: Session):
     content = read_txt_file(file_path)
-    vector = text_to_vector(content)  # Преобразуем контент в вектор
-    knowledge_base_entry = VectorizedKnowledgeBase(
-        title=file_path.split("/")[-1],
-        content=content,
-        vector=vector
-    )
-    db.add(knowledge_base_entry)
+    chunks = split_text_into_chunks(content)
+    for chunk in chunks:
+        vector = text_to_vector(chunk)  # Преобразуем контент в вектор
+        knowledge_base_entry = VectorizedKnowledgeBase(
+            title=file_path.split("/")[-1],
+            content=chunk,
+            vector=vector
+        )
+        db.add(knowledge_base_entry)
     db.commit()
 
 def process_csv_file(file_path: str, db: Session):
@@ -82,3 +84,12 @@ def process_md_file(file_path, db):
     )
     db.add(knowledge_base_entry)
     db.commit()
+
+def split_text_into_chunks(text, chunk_size=1000):
+    """
+    Разделяет текст на чанки фиксированного размера.
+    """
+    chunks = []
+    for i in range(0, len(text), chunk_size):
+        chunks.append(text[i:i + chunk_size])
+    return chunks
