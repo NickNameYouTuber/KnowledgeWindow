@@ -20,7 +20,7 @@ def create_app():
     jwt.init_app(app)
 
     # Import and register blueprints or routes
-    from main import main_bp
+    from app import main_bp
     app.register_blueprint(main_bp)
 
     return app

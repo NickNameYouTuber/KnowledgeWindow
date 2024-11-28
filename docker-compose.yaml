@@ -1,0 +1,32 @@
+version: '3.11'
+
+services:
+  database:
+    build: ./app/DATABASE
+    container_name: database
+    ports:
+      - "7471:7471"
+    environment:
+      - DATABASE_URL=http://database:7471
+
+  admin:
+    build: ./app/ADMIN
+    container_name: admin
+    ports:
+      - "7472:7472"
+    environment:
+      - DATABASE_URL=http://database:7471
+
+  user:
+    build: ./app/USER
+    container_name: user
+    ports:
+      - "7473:7473"
+    environment:
+      - DATABASE_URL=http://database:7471
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "7831:7831"

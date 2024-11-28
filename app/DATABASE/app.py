@@ -9,13 +9,11 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from langchain.document_transformers import html2text
 from notion_client import Client
 
-from app.DATABASE.config.database import UserQueryHistory, User, NeuralNetworkSettings, VectorizedKnowledgeBase, PromptTemplate
 from create_app import db
 from routes.knowledge_base_routes import search_knowledge_base, upload_txt_file, upload_csv_file, upload_docx_file, \
     upload_xlsx_file, upload_pdf_file, upload_md_file
 from routes.auth_routes import register_user, login_user
 
-from app.DATABASE.services.vectorize_service import text_to_vector
 
 main_bp = Blueprint('main', __name__)
 

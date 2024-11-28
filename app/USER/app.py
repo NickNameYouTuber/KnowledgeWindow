@@ -1,5 +1,5 @@
 import os
-import tempfil
+import tempfile
 
 import chardet
 import git
@@ -11,7 +11,6 @@ from notion_client import Client
 from urllib.parse import unquote
 import requests
 
-from app.DATABASE.services.vectorize_service import text_to_vector
 
 main_bp = Blueprint('main', __name__)
 

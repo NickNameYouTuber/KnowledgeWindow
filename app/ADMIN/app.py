@@ -3,6 +3,7 @@ from flask_jwt_extended import jwt_required
 from create_app import db
 from urllib.parse import unquote
 import requests
+import os
 
 # Основной Blueprint
 main_bp = Blueprint('main', __name__)
