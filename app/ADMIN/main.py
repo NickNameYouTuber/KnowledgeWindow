@@ -234,7 +234,7 @@ def upload_txt():
     file = request.files['file']
     if file:
         content = file.read().decode('utf-8')
-        response = requests.post(f"{DATABASE_URL}/upload-txt", json={"content": content})
+        response = requests.post(f"{DATABASE_URL}/upload/upload-txt", json={"content": content})
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "No file provided"}), 400
 
@@ -244,7 +244,7 @@ def upload_pdf():
     file = request.files['file']
     if file:
         content = file.read().decode('utf-8')
-        response = requests.post(f"{DATABASE_URL}/upload-pdf", json={"content": content})
+        response = requests.post(f"{DATABASE_URL}/upload/upload-pdf", json={"content": content})
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "No file provided"}), 400
 
@@ -254,7 +254,7 @@ def upload_docx():
     file = request.files['file']
     if file:
         content = file.read().decode('utf-8')
-        response = requests.post(f"{DATABASE_URL}/upload-docx", json={"content": content})
+        response = requests.post(f"{DATABASE_URL}/upload/upload-docx", json={"content": content})
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "No file provided"}), 400
 
@@ -264,7 +264,7 @@ def upload_xlsx():
     file = request.files['file']
     if file:
         content = file.read().decode('utf-8')
-        response = requests.post(f"{DATABASE_URL}/upload-xlsx", json={"content": content})
+        response = requests.post(f"{DATABASE_URL}/upload/upload-xlsx", json={"content": content})
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "No file provided"}), 400
 
@@ -274,7 +274,7 @@ def upload_md():
     file = request.files['file']
     if file:
         content = file.read().decode('utf-8')
-        response = requests.post(f"{DATABASE_URL}/upload-md", json={"content": content})
+        response = requests.post(f"{DATABASE_URL}/upload/upload-md", json={"content": content})
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "No file provided"}), 400
 
@@ -283,7 +283,7 @@ def upload_md():
 def upload_repo():
     repo_url = request.json.get('repo_url')
     if repo_url:
-        response = requests.post(f"{DATABASE_URL}/upload-repo", json={"repo_url": repo_url})
+        response = requests.post(f"{DATABASE_URL}/upload/upload-repo", json={"repo_url": repo_url})
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "No repository URL provided"}), 400
 
@@ -293,7 +293,7 @@ def upload_csv():
     file = request.files['file']
     if file:
         content = file.read().decode('utf-8')
-        response = requests.post(f"{DATABASE_URL}/upload-csv", json={"content": content})
+        response = requests.post(f"{DATABASE_URL}/upload/upload-csv", json={"content": content})
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "No file provided"}), 400
 
@@ -302,7 +302,7 @@ def upload_csv():
 def upload_confluence():
     data = request.json
     if data:
-        response = requests.post(f"{DATABASE_URL}/upload-confluence", json=data)
+        response = requests.post(f"{DATABASE_URL}/upload/upload-confluence", json=data)
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "Missing required fields"}), 400
 
@@ -311,7 +311,7 @@ def upload_confluence():
 def upload_notion():
     data = request.json
     if data:
-        response = requests.post(f"{DATABASE_URL}/upload-notion", json=data)
+        response = requests.post(f"{DATABASE_URL}/upload/upload-notion", json=data)
         return jsonify(response.json()), response.status_code
     return jsonify({"error": "Missing required fields"}), 400
 
@@ -385,4 +385,4 @@ main_bp.register_blueprint(upload_bp, url_prefix='/upload')
 # Добавление маршрута для приветствия
 @main_bp.route('/', methods=['GET'])
 def hello():
-    return "Infina"
+    return "Infina Admin"
