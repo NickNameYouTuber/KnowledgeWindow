@@ -1,5 +1,5 @@
 import os
-import tempfile
+import tempfil
 
 import chardet
 import git
