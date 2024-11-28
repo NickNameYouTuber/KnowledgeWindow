@@ -221,6 +221,53 @@ def embed():
 
     return render_template_string(html)
 
+upload_bp = Blueprint('upload', __name__)
+
+@upload_bp.route('/upload-txt', methods=['POST'])
+@jwt_required()
+def upload_txt():
+    pass
+
+@upload_bp.route('/upload-pdf', methods=['POST'])
+@jwt_required()
+def upload_pdf():
+    pass
+
+@upload_bp.route('/upload-docx', methods=['POST'])
+@jwt_required()
+def upload_docx():
+    pass
+
+@upload_bp.route('/upload-xlsx', methods=['POST'])
+@jwt_required()
+def upload_xlsx():
+    pass
+
+@upload_bp.route('/upload-md', methods=['POST'])
+@jwt_required()
+def upload_md():
+    pass
+
+@upload_bp.route('/upload-repo', methods=['POST'])
+@jwt_required()
+def upload_repo():
+    pass
+
+@upload_bp.route('/upload-csv', methods=['POST'])
+@jwt_required()
+def upload_csv():
+    pass
+
+@upload_bp.route('/upload-confluence', methods=['POST'])
+@jwt_required()
+def upload_confluence():
+    pass
+
+@upload_bp.route('/upload-notion', methods=['POST'])
+@jwt_required()
+def upload_notion():
+    pass
+
 # Под-Blueprint для neural_network
 neural_network_bp = Blueprint('neural_network', __name__)
 
@@ -330,6 +377,7 @@ main_bp.register_blueprint(embed_bp, url_prefix='/embed')
 main_bp.register_blueprint(neural_network_bp, url_prefix='/neural-network')
 main_bp.register_blueprint(files_bp, url_prefix='/files')
 main_bp.register_blueprint(prompt_template_bp, url_prefix='/prompt-template')
+main_bp.register_blueprint(upload_bp, url_prefix='/upload')
 
 # Добавление маршрута для приветствия
 @main_bp.route('/', methods=['GET'])
